@@ -1,4 +1,4 @@
-# Encapsulator
+# Codify
 
 Transparently compresses text before saving to your database. This gem compresses text attributes automatically, and uncompresses automatically on retrieval.
 
@@ -10,7 +10,7 @@ Currently, only activerecord is supported. The compression algorithm is zlib.
 
 Add this line to your application''s Gemfile:
 
-    gem 'encapsulator'
+    gem 'codify'
 
 And then execute:
 
@@ -18,7 +18,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install encapsulator
+    $ gem install codify
 
 ## Usage
 

@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/encapsulator/version', __FILE__)
+require File.expand_path('../lib/codify/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Ronald Ping Man Chan"]
   gem.email         = ["ronalchn@gmail.com"]
-  gem.description   = %q{Transparently compresses text before saving to your database.}
-  gem.summary       = %q{Automatically compresses marked text attributes for saving to database, and uncompresses when retrieving the field. This reduces the size of your database.}
-  gem.homepage      = "https://github.com/ronalchn/encapsulator"
+  gem.description   = %q{Transparently encodes text before saving to your database.}
+  gem.summary       = %q{Automatically encodes any desired text attributes for saving to database, and unencodes when retrieving the field. Includes encoding for compression, encryption and error checking.}
+  gem.homepage      = "https://github.com/ronalchn/codify"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "encapsulator"
+  gem.name          = "codify"
   gem.require_paths = ["lib"]
-  gem.version       = Encapsulator::VERSION
+  gem.version       = Codify::VERSION
 
   # specify any dependencies here; for example:
   gem.add_development_dependency "rake"

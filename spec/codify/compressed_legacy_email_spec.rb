@@ -16,8 +16,8 @@ describe 'CompressedLegacyEmail' do
     class LegacyEmail < ActiveRecord::Base # used to test data with direct access to database
     end
     class CompressedLegacyEmail < LegacyEmail
-      include Encapsulator::ActiveRecordAdditions
-      compress_attribute :body
+      include Codify::ModelAdditions
+      attr_compressor :body
     end
   end
   after(:all) do
@@ -41,7 +41,7 @@ describe 'CompressedLegacyEmail' do
   end
   it 'can save email with compressed body only' do
     body = "My email body set on initialization"
-    email = CompressedLegacyEmail.create( :from => "initializer@email.class", :to => "encapsulator@email.class", :subject => "Test initialization compression", :body => body )
+    email = CompressedLegacyEmail.create( :from => "initializer@email.class", :to => "codify@email.class", :subject => "Test initialization compression", :body => body )
     email = CompressedLegacyEmail.find(email.id) # re-load from database
     email.body.should == body
     # check that only compressed body is saved
@@ -51,14 +51,14 @@ describe 'CompressedLegacyEmail' do
   end
   it 'can read legacy email with uncompressed body' do
     body = "My email body set on initialization"
-    legacy_email = LegacyEmail.create( :from => "initializer@email.class", :to => "encapsulator@email.class", :subject => "Uncompressed email", :body => body )
+    legacy_email = LegacyEmail.create( :from => "initializer@email.class", :to => "codify@email.class", :subject => "Uncompressed email", :body => body )
     legacy_email.compressed_body.should be_nil
     email = CompressedLegacyEmail.find(legacy_email.id)
     email.body.should == body
   end
   it 'can save compressed body for initially uncompressed legacy email' do
     body = "My email body set on initialization"
-    legacy_email = LegacyEmail.create( :from => "initializer@email.class", :to => "encapsulator@email.class", :subject => "Uncompressed email", :body => body )
+    legacy_email = LegacyEmail.create( :from => "initializer@email.class", :to => "codify@email.class", :subject => "Uncompressed email", :body => body )
     email = CompressedLegacyEmail.find(legacy_email.id)
     new_body = "New body which will be compressed!"
     email.body = new_body

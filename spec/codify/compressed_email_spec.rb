@@ -9,8 +9,8 @@ describe 'CompressedEmail' do
       t.binary :compressed_body
     end
     class CompressedEmail < ActiveRecord::Base
-      include Encapsulator::ActiveRecordAdditions
-      compress_attribute :body
+      include Codify::ModelAdditions
+      attr_compressor :body
     end
   end
   after(:all) do
@@ -47,14 +47,14 @@ describe 'CompressedEmail' do
   end
   it 'can construct and compress new email with body' do
     body = "My email body set on initialization"
-    email = CompressedEmail.new( :from => "initializer@email.class", :to => "encapsulator@email.class", :subject => "Test initialization compression", :body => body )
+    email = CompressedEmail.new( :from => "initializer@email.class", :to => "codify@email.class", :subject => "Test initialization compression", :body => body )
     email.body_changed?.should be_true
     email.compressed_body_changed?.should be_true
     email.compressed_body.should_not be_blank
   end
   it 'can save email with compressed body' do
     body = "My email body set on initialization"
-    email = CompressedEmail.create( :from => "initializer@email.class", :to => "encapsulator@email.class", :subject => "Test initialization compression", :body => body )
+    email = CompressedEmail.create( :from => "initializer@email.class", :to => "codify@email.class", :subject => "Test initialization compression", :body => body )
     email = CompressedEmail.find(email.id)
     email.body.should == body
   end
@@ -66,7 +66,7 @@ describe 'CompressedEmail' do
   context 'with email already in database' do
     before(:each) do
       @body = "Initial body that is in the database. I am very happy in the database, after I have been compressed, I can be re-inflated."
-      @email_id = CompressedEmail.create( :from => "initializer@email.class", :to => "encapsulator@email.class", :subject => "Email in database", :body => @body ).id
+      @email_id = CompressedEmail.create( :from => "initializer@email.class", :to => "codify@email.class", :subject => "Email in database", :body => @body ).id
     end
     it 'can read back body' do
       email = CompressedEmail.find(@email_id)

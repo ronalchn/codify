@@ -2,7 +2,7 @@ require 'active_record'
 require 'rspec'
 require 'rake' 
 require 'database_cleaner'
-require 'encapsulator'
+require 'codify'
 
 # Load support files
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }

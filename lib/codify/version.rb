@@ -1,3 +1,3 @@
-module Encapsulator
+module Codify
   VERSION = "0.0.1"
 end
