@@ -7,6 +7,7 @@
 require "codify/encoders/abstract_encoder"
 require "codify/encoders/zlib_encoder"
 require "codify/encoders/base64_encoder"
+require "codify/encoders/digest_encoder"
 
 module Codify
   module Encoders
@@ -57,13 +58,14 @@ module Codify
     #
     # If it is a class, initialize the Encoder with input options
     #
-    def self.find encoder, type = :all, options # :nodoc:
+    def self.find encoder, type = :all, options = {} # :nodoc:
       return encoder if encoder.class < AbstractEncoder
       unless encoder.class == Class || encoder.class < AbstractEncoder
         symbol = encoder.to_sym
         @@registry[type] ||= {}
+        encoder = nil
         unless type == :all
-          encoder = @@registry[type][symbol]
+          encoder ||= @@registry[type][symbol]
           encoder ||= @@registry[type][0].reverse_each.reduce(nil) { |encoder,f| encoder || f[symbol] } if @@registry[type].has_key?(0)
         end
         encoder ||= @@registry[:all][symbol]
@@ -89,11 +91,20 @@ module Codify
     end
 
     # register default encoders
+    register :none, AbstractEncoder # TODO: add a plaintext encoder
+
+    # register compressors
     register :zlib, ZlibEncoder, :compressor
+
+    # register plain encodings
     register :base64, Base64Encoder, :encoding
     register :strict_base64, Base64Encoder.new( :representation => :strict ), :encoding
     register :urlsafe_base64, Base64Encoder.new( :representation => :urlsafe ), :encoding
-    register :none, AbstractEncoder # TODO: add a plaintext encoder
 
+    # register digestors
+    register :digestor do |symbol|
+      next DigestEncoder.new(:algorithm => symbol) if DigestEncoder.algorithms.include? symbol
+      nil
+    end
   end
 end

@@ -17,8 +17,13 @@ module Codify
         attr_encoder attribute_name, options
       end
 
+      def attr_digestor attribute_name, options = {}
+        options = { :encoder => :sha512, :prefix => "digested_", :verb => "digest", :encoder_type => :digestor }.merge(options.symbolize_keys)
+        attr_encoder attribute_name, options
+      end
+
       def attr_encoder attribute_name, options = {}
-        options = { :encoder => :none, :prefix => "encoded_", :suffix => "", :verb => "encode", :reverse_verb => "decode" }.merge(options.symbolize_keys)
+        options = { :encoder => :none, :prefix => "encoded_", :suffix => "", :verb => "encode", :reverse_verb => "decode", :include_plaintext => false }.merge(options.symbolize_keys)
         # manage options, extract those required (the rest will be passed to individual encoders)
         encoder_type = options.delete(:encoder_type)
         encoders = Array(options.delete(:encoder))
@@ -26,6 +31,7 @@ module Codify
         suffix = options.delete(:suffix)
         verb = options.delete(:verb)
         reverse_verb = options.delete(:reverse_verb)
+        include_plaintext = options.delete(:include_plaintext)
 
         encoders.map! { |encoder| Encoders.find(encoder, encoder_type, options) }
         # give encoders a reference to the record if they require it
@@ -41,8 +47,10 @@ module Codify
         has_unencoded = attribute_names.include? attribute_name.to_s # check if (legacy) unencoded attribute still exists
         depends_on_record = encoders.any? { |encoder| encoder.depends_on_record? } # then no class method to encode this attribute
         reversible = encoders.all? { |encoder| encoder.decodes? } # then no reading of encoded attributes
+        exclude_plaintext = !include_plaintext
 
         define_method attribute_name do # override where to read it from
+          return read_attribute(attribute_name) if include_plaintext
           value = instance_variable_get unencoded_ivar
           if value.nil? # if uninitialized
             encoded_value = read_attribute(encoded_attribute_name)
@@ -58,47 +66,50 @@ module Codify
 
         define_method "#{attribute_name}=".to_sym do |value|
           encoded_value = Encoders.encode(encoders, value)
-          if !send("#{encoded_attribute_name}_changed?") # implement a little bit of ActiveModel::Dirty on unencoded variable (for caching)
+          if exclude_plaintext && !send("#{encoded_attribute_name}_changed?") # implement a little bit of ActiveModel::Dirty on unencoded variable (for caching)
             instance_variable_set(old_unencoded_ivar, instance_variable_get(unencoded_ivar))
           end
           write_attribute(encoded_attribute_name, encoded_value)
+          write_attribute(attribute_name, value) if include_plaintext
           instance_variable_set unencoded_ivar, value # save a copy of the unencoded value
         end
 
-        define_method "#{attribute_name}_changed?".to_sym do
-          send("#{encoded_attribute_name}_changed?")
-        end
-        
-        define_method "#{attribute_name}_was".to_sym do # use cached old unencoded variable if available
-          instance_variable_get(old_unencoded_ivar) || begin
-            encoded_value = send("#{encoded_attribute_name}_was")
-            next (has_unencoded ? read_attribute(attribute_name) : nil) if encoded_value.blank?
-            value = Encoders.decode(encoders, encoded_value)
-            instance_variable_set(old_unencoded_ivar, value) # cache what has been decoded
+        if exclude_plaintext
+          define_method "#{attribute_name}_changed?".to_sym do
+            send("#{encoded_attribute_name}_changed?")
           end
-        end if reversible # do not define method if cannot decode
+          
+          define_method "#{attribute_name}_was".to_sym do # use cached old unencoded variable if available
+            instance_variable_get(old_unencoded_ivar) || begin
+              encoded_value = send("#{encoded_attribute_name}_was")
+              next (has_unencoded ? read_attribute(attribute_name) : nil) if encoded_value.blank?
+              value = Encoders.decode(encoders, encoded_value)
+              instance_variable_set(old_unencoded_ivar, value) # cache what has been decoded
+            end
+          end if reversible # do not define method if cannot decode
 
-        define_method "#{attribute_name}_change".to_sym do
-          send("#{encoded_attribute_name}_changed?") ? [send("#{attribute_name}_was"), send(attribute_name)] : nil
-        end if reversible
+          define_method "#{attribute_name}_change".to_sym do
+            send("#{encoded_attribute_name}_changed?") ? [send("#{attribute_name}_was"), send(attribute_name)] : nil
+          end if reversible
 
-        define_method "#{attribute_name}?".to_sym do
-          if reversible
-            value = send attribute_name
-          else
-            value = send encoded_attribute_name
+          define_method "#{attribute_name}?".to_sym do
+            if reversible
+              value = send attribute_name
+            else
+              value = send encoded_attribute_name
+            end
+            value && !value.blank?
           end
-          value && !value.blank?
         end
 
         after_initialize do |record| # eager decoding attribute in case other record states change (affecting encoding)
           encoded_value = read_attribute(encoded_attribute_name)
           instance_variable_set unencoded_ivar, Encoders.decode(encoders, encoded_value) unless encoded_value.blank?
-        end if reversible && depends_on_record
+        end if reversible && depends_on_record && exclude_plaintext
 
         before_save do |record|
           # if writing a new encoded value, clear unencoded value if necessary
-          write_attribute(attribute_name, "") if has_unencoded && record.send("#{encoded_attribute_name}_changed?")
+          write_attribute(attribute_name, "") if has_unencoded && record.send("#{encoded_attribute_name}_changed?") && exclude_plaintext
 
           # re-encode if states could have changed, and encoding might depend on those states, will only be re-encoded
           # if either:
@@ -125,7 +136,7 @@ module Codify
 
           define_method [reverse_verb,attribute_name].join('_').to_sym do |data|
             Encoders.decode(encoders,data)
-          end
+          end if reversible
         end if !depends_on_record
       end
     end
