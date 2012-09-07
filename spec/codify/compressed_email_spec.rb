@@ -63,6 +63,16 @@ describe 'CompressedEmail' do
     email = CompressedEmail.new( :body => body )
     email.compressed_body.length.should < body.length
   end
+  it 'compresses on record and ActiveRecord class the same' do
+    body = "I can be compressed by class and object"
+    email = CompressedEmail.new( :body => body )
+    CompressedEmail.compress_body(body).should == email.compressed_body
+  end
+  it 'uncompresses on record and ActiveRecord class the same' do
+    body = "I can be uncompressed by class and object"
+    email = CompressedEmail.new( :body => body )
+    CompressedEmail.uncompress_body(email.compressed_body).should == body
+  end
   context 'with email already in database' do
     before(:each) do
       @body = "Initial body that is in the database. I am very happy in the database, after I have been compressed, I can be re-inflated."
