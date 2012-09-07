@@ -100,12 +100,15 @@ module Codify
           # if writing a new encoded value, clear unencoded value if necessary
           write_attribute(attribute_name, "") if has_unencoded && record.send("#{encoded_attribute_name}_changed?")
 
-          # re-encode if states could have changed, and encoding might depend on those states
+          # re-encode if states could have changed, and encoding might depend on those states, will only be re-encoded
+          # if either:
+          # * reversible - hence the original value was eager decoded (even if the decoded value is blank)
+          # * or not blank - hence the value has been written to (and there is something to re-encode)
           # WARNING: if users change the state in another before_save callback after this executes, inconsistent state
           # might still result
           if depends_on_record && self.changed?
             value = send(attribute_name)
-            write_attribute(encoded_attribute_name, Encoders.encode(encoders, value))
+            write_attribute(encoded_attribute_name, Encoders.encode(encoders, value)) if reversible || !value.blank?
           end
           true
         end
