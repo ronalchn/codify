@@ -51,13 +51,24 @@ datablock = DataBlock.first
 datablock.data # => "Data, could be binary, ..."
 ```
 
-A convenience method <tt>attr_compressor</tt> is also available to compress an attribute.
+You can change the default encoded attribute column name with <tt>:prefix</tt> and <tt>:suffix</tt> options.
+
+Convenience methods for specific types of encoding are also available. For example, <tt>attr_compressor</tt> compresses an attribute.
 
 ```ruby
 class Page < ActiveRecord::Base
   attr_compressor :body #, :encoder => :zlib # this is already the default for attr_compressor
 end
 ```
+
+Each method applies an appropriate set of default options:
+
+<table>
+  <tr><th>Convenience Method</th>       <th><tt>:encoder</tt></th>      <th><tt>:prefix</tt></th>         <th><tt>:encoder_type</tt></th>                                                                                           <th><tt>:verb</tt></th>       <th><tt>:reverse_verb</tt></th>       <th>Recommended Usage</th></tr>
+  <tr><td><tt>attr_encoder</tt></td>    <td><tt>:none</tt></td>         <td><tt>"encoded_"</tt></td>      <td><tt>:all</tt></td>                                                                                                    <td><tt>:encode</tt></td>     <td><tt>:decode</tt></td>             <td>Encoding</td></tr>
+  <tr><td><tt>attr_compressor</tt></td> <td><tt>:zlib</tt></td>         <td><tt>"compressed_"</tt></td>   <td><tt>:compressor</tt></td>                                                                                             <td><tt>:compress</tt></td>   <td><tt>:uncompress</tt></td>         <td>Compression</td></tr>
+  <tr><td><tt>attr_digestor</tt></td>   <td><tt>:sha512</tt></td>       <td><tt>"digested_"</tt></td>   <td><tt>:digestor</tt></td>                                                                                                 <td><tt>:digest</tt></td>     <td><tt>:decode</tt> (not used)</td>  <td>Digest/Hashing</td></tr>
+</table>
 
 ### Options
 
