@@ -1,5 +1,7 @@
 # Codify
 
+{<img src="https://secure.travis-ci.org/ronalchn/codify.png?branch=master" alt="Build Status" />}[http://travis-ci.org/ronalchn/codify]
+
 Transparently encodes text before saving to your database. Automatically encodes any desired text attributes for saving to database, and decodes when retrieving the field. Includes encoding for compression, encryption and error checking.
 
 Many encodings can be useful, for example, compression can be useful for large text fields, to save disk space, encryption may be used to safeguard data.
