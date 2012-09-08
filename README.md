@@ -64,10 +64,18 @@ end
 Each method applies an appropriate set of default options:
 
 <table>
-  <tr><th>Convenience Method</th>       <th>:encoder</th>      <th>:prefix</th>         <th>:encoder_type</th>                                                                                           <th>:verb</th>       <th>:reverse_verb</th>       <th>Recommended Usage</th></tr>
-  <tr><td>attr_encoder</td>    <td>:none</td>         <td>"encoded_"</td>      <td>:all</td>                                                                                                    <td>:encode</td>     <td>:decode</td>             <td>Encoding</td></tr>
-  <tr><td>attr_compressor</td> <td>:zlib</td>         <td>"compressed_"</td>   <td>:compressor</td>                                                                                             <td>:compress</td>   <td>:uncompress</td>         <td>Compression</td></tr>
-  <tr><td>attr_digestor</td>   <td>:sha512</td>       <td>"digested_"</td>   <td>:digestor</td>                                                                                                 <td>:digest</td>     <td>:decode (not used)</td>  <td>Digest/Hashing</td></tr>
+  <tr>
+    <th>Method</th>           <th>:encoder</th> <th>:prefix</th>      <th>:encoder_type</th><th>:verb</th>      <th>:reverse_verb</th>    <th>Recommended Usage</th>
+  </tr>
+  <tr>
+    <td>attr_encoder</td>     <td>:none</td>    <td>encoded_</td>     <td>:all</td>         <td>:encode</td>    <td>:decode</td>            <td>Encoding</td>
+  </tr>
+  <tr>
+    <td>attr_compressor</td>  <td>:zlib</td>    <td>compressed_</td>  <td>:compressor</td>  <td>:compress</td>  <td>:uncompress</td>        <td>Compression</td>
+  </tr>
+  <tr>
+    <td>attr_digestor</td>    <td>:sha512</td>  <td>digested_</td>    <td>:digestor</td>    <td>:digest</td>    <td>:decode (not used)</td> <td>Digest/Hashing</td>
+  </tr>
 </table>
 
 ### Options
