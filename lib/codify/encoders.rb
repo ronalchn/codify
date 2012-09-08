@@ -76,15 +76,17 @@ module Codify
       encoder
     end
 
-    def self.encode encoders, data
+    def self.encode encoders, data, record = nil
       encoders.each do |encoder|
+        encoder.record = record
         data = encoder.encode(data)
       end
       data
     end
 
-    def self.decode encoders, data
+    def self.decode encoders, data, record = nil
       encoders.reverse_each do |encoder|
+        encoder.record = record
         data = encoder.decode(data)
       end
       data

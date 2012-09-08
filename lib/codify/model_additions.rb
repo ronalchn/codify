@@ -34,8 +34,6 @@ module Codify
         include_plaintext = options.delete(:include_plaintext)
 
         encoders.map! { |encoder| Encoders.find(encoder, encoder_type, options) }
-        # give encoders a reference to the record if they require it
-        encoders.each { |encoder| encoder.record = self if encoder.depends_on_record? }
 
         # some constant variables (for naming purposes)
         attribute_name = attribute_name.to_sym
@@ -55,7 +53,7 @@ module Codify
           if value.nil? # if uninitialized
             encoded_value = read_attribute(encoded_attribute_name)
             if reversible && !encoded_value.blank?
-              value = Encoders.decode(encoders, encoded_value)
+              value = Encoders.decode(encoders, encoded_value, self)
             elsif has_unencoded
               value = read_attribute(attribute_name)
             end
@@ -65,7 +63,7 @@ module Codify
         end
 
         define_method "#{attribute_name}=".to_sym do |value|
-          encoded_value = Encoders.encode(encoders, value)
+          encoded_value = Encoders.encode(encoders, value, self)
           if exclude_plaintext && !send("#{encoded_attribute_name}_changed?") # implement a little bit of ActiveModel::Dirty on unencoded variable (for caching)
             instance_variable_set(old_unencoded_ivar, instance_variable_get(unencoded_ivar))
           end
@@ -83,7 +81,7 @@ module Codify
             instance_variable_get(old_unencoded_ivar) || begin
               encoded_value = send("#{encoded_attribute_name}_was")
               next (has_unencoded ? read_attribute(attribute_name) : nil) if encoded_value.blank?
-              value = Encoders.decode(encoders, encoded_value)
+              value = Encoders.decode(encoders, encoded_value, self)
               instance_variable_set(old_unencoded_ivar, value) # cache what has been decoded
             end
           end if reversible # do not define method if cannot decode
@@ -104,7 +102,7 @@ module Codify
 
         after_initialize do |record| # eager decoding attribute in case other record states change (affecting encoding)
           encoded_value = read_attribute(encoded_attribute_name)
-          instance_variable_set unencoded_ivar, Encoders.decode(encoders, encoded_value) unless encoded_value.blank?
+          instance_variable_set unencoded_ivar, Encoders.decode(encoders, encoded_value, record) unless encoded_value.blank?
         end if reversible && depends_on_record && exclude_plaintext
 
         before_save do |record|
@@ -117,9 +115,9 @@ module Codify
           # * or not blank - hence the value has been written to (and there is something to re-encode)
           # WARNING: if users change the state in another before_save callback after this executes, inconsistent state
           # might still result
-          if depends_on_record && self.changed?
+          if depends_on_record && record.changed?
             value = send(attribute_name)
-            write_attribute(encoded_attribute_name, Encoders.encode(encoders, value)) if reversible || !value.blank?
+            write_attribute(encoded_attribute_name, Encoders.encode(encoders, value, record)) if reversible || !value.blank?
           end
           true
         end
