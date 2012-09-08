@@ -64,10 +64,10 @@ end
 Each method applies an appropriate set of default options:
 
 <table>
-  <tr><th>Convenience Method</th>       <th><tt>:encoder</tt></th>      <th><tt>:prefix</tt></th>         <th><tt>:encoder_type</tt></th>                                                                                           <th><tt>:verb</tt></th>       <th><tt>:reverse_verb</tt></th>       <th>Recommended Usage</th></tr>
-  <tr><td><tt>attr_encoder</tt></td>    <td><tt>:none</tt></td>         <td><tt>"encoded_"</tt></td>      <td><tt>:all</tt></td>                                                                                                    <td><tt>:encode</tt></td>     <td><tt>:decode</tt></td>             <td>Encoding</td></tr>
-  <tr><td><tt>attr_compressor</tt></td> <td><tt>:zlib</tt></td>         <td><tt>"compressed_"</tt></td>   <td><tt>:compressor</tt></td>                                                                                             <td><tt>:compress</tt></td>   <td><tt>:uncompress</tt></td>         <td>Compression</td></tr>
-  <tr><td><tt>attr_digestor</tt></td>   <td><tt>:sha512</tt></td>       <td><tt>"digested_"</tt></td>   <td><tt>:digestor</tt></td>                                                                                                 <td><tt>:digest</tt></td>     <td><tt>:decode</tt> (not used)</td>  <td>Digest/Hashing</td></tr>
+  <tr><th>Convenience Method</th>       <th>:encoder</th>      <th>:prefix</th>         <th>:encoder_type</th>                                                                                           <th>:verb</th>       <th>:reverse_verb</th>       <th>Recommended Usage</th></tr>
+  <tr><td>attr_encoder</td>    <td>:none</td>         <td>"encoded_"</td>      <td>:all</td>                                                                                                    <td>:encode</td>     <td>:decode</td>             <td>Encoding</td></tr>
+  <tr><td>attr_compressor</td> <td>:zlib</td>         <td>"compressed_"</td>   <td>:compressor</td>                                                                                             <td>:compress</td>   <td>:uncompress</td>         <td>Compression</td></tr>
+  <tr><td>attr_digestor</td>   <td>:sha512</td>       <td>"digested_"</td>   <td>:digestor</td>                                                                                                 <td>:digest</td>     <td>:decode (not used)</td>  <td>Digest/Hashing</td></tr>
 </table>
 
 ### Options
