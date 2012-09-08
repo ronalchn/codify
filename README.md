@@ -1,6 +1,6 @@
 # Codify
 
-{<img src="https://secure.travis-ci.org/ronalchn/codify.png?branch=master" alt="Build Status" />}[http://travis-ci.org/ronalchn/codify]
+[![Build Status](https://secure.travis-ci.org/ronalchn/codify.png?branch=master)](http://travis-ci.org/ronalchn/codify)
 
 Transparently encodes text before saving to your database. Automatically encodes any desired text attributes for saving to database, and decodes when retrieving the field. Includes encoding for compression, encryption and error checking.
 
