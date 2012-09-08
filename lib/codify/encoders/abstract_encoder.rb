@@ -37,7 +37,7 @@ module Codify
       # to encode or decode data (ie. encoding must be done on an instance).
       #
       def depends_on_record?
-        @options.any? { |option| option.class === Proc }
+        @options.any? { |_,value| value.respond_to?(:call) }
       end
 
       # Wrapper to easily use encoder for encoding, by automatically constructing one
