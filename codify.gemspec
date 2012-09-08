@@ -20,8 +20,9 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "sqlite3"
   gem.add_development_dependency "database_cleaner"
-  gem.add_development_dependency "debugger"
   gem.add_development_dependency "datamapper"
+  gem.add_development_dependency "debugger" if RUBY_VERSION != '1.8.7' # support 1.8.7+
+  gem.add_development_dependency "ruby-debug" if RUBY_VERSION == '1.8.7'
 
   gem.add_runtime_dependency "activerecord", '>= 3.0'
 end

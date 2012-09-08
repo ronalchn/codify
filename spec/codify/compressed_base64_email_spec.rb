@@ -16,7 +16,7 @@ describe 'CompressedBase64Email' do
     end
     class CompressedBase64Email < ActiveRecord::Base
       include Codify::ModelAdditions
-      attr_compressor :body, :encoder => [:zlib,:base64], :representation => :strict
+      attr_compressor :body, :encoder => [:zlib,:base64]
     end
   end
   after(:all) do
@@ -49,8 +49,8 @@ describe 'CompressedBase64Email' do
     email.body = body
     CompressedBase64Email.uncompress_body(email.compressed_body).should == body
   end
-  it 'is printable once compressed' do
+  it 'is base64 encoded once compressed' do
     compressed_body = CompressedBase64Email.compress_body("Test compression")
-    compressed_body.inspect.should == "\"#{compressed_body}\"" # because it is printable
+    compressed_body.match(/\A[\w\/+\n]*=*\n?\z/).should_not be_nil # should match base64 encoding characters
   end
 end
