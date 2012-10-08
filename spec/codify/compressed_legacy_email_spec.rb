@@ -23,6 +23,7 @@ describe 'CompressedLegacyEmail' do
     end
     class CompressedLegacyEmail < LegacyEmail
       include Codify::ModelAdditions
+      attr_shadow :body
       attr_compressor :body
     end
   end

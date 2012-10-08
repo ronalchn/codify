@@ -9,8 +9,35 @@ module Codify
     class AbstractEncoder
       # Assigns options to instance variable
       #
-      def initialize options = {}
+      def initialize *args
+        options = args.last.class == Hash ? args.pop : {}
         @options = options.symbolize_keys
+
+        args.reverse!
+        @auxiliary_inputs = {}
+        unless args.empty?
+          inputs = args.pop
+          if inputs.class == Hash
+            @auxiliary_inputs = inputs.symbolize_keys.slice(*auxiliary_inputs) # keep only auxiliary requested
+          elsif inputs.class == Array
+            @auxiliary_inputs = Hash[auxiliary_inputs[0...inputs.size].zip(inputs)] # keep minimum of requested and actual inputs
+          end
+        end
+        raise ArgumentError, "wrong number of arguments(#{args.size} too many)" unless args.empty?
+      end
+
+      # Declares the auxiliary inputs which are allowed. An encoder will read it using
+      # <tt>options(:auxiliary_input)</tt>. However, auxiliary inputs will be automatically
+      # called as a method on the model when required. Auxiliary inputs are also intercepted
+      # when set, and a re-encoding will take place when they change. If any auxiliary input
+      # methods return <tt>nil</tt>, no encoding will take place.
+      #
+      def auxiliary_inputs
+        auxiliary_inputs
+      end
+
+      def auxiliary_keys
+        @auxiliary_inputs.keys
       end
 
       # Allow a record to be linked to this encoder (for procs)

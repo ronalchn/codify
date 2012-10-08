@@ -32,7 +32,7 @@ describe 'CompressedEmail' do
     body = "My new email body"
     email.body = body
     email.body.should == body
-    email.body_changed?.should be_true
+    email.compressed_body.should_not be_nil
   end
   it 'body initially unchanged' do
     email = CompressedEmail.new

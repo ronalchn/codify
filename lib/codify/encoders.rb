@@ -58,7 +58,7 @@ module Codify
     #
     # If it is a class, initialize the Encoder with input options
     #
-    def self.find encoder, type = :all, options = {} # :nodoc:
+    def self.init encoder, type = :all, auxiliary_inputs = nil, options = {} # :nodoc:
       return encoder if encoder.class < AbstractEncoder
       unless encoder.class == Class || encoder.class < AbstractEncoder
         symbol = encoder.to_sym
@@ -80,7 +80,7 @@ module Codify
       encoders.each do |encoder|
         encoder.record = record
         data = encoder.encode(data)
-      end
+      end unless data.nil? # don't encode/decode if nil
       data
     end
 
@@ -88,7 +88,7 @@ module Codify
       encoders.reverse_each do |encoder|
         encoder.record = record
         data = encoder.decode(data)
-      end
+      end unless data.nil? # don't encode/decode if nil
       data
     end
 
