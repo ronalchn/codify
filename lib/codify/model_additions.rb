@@ -126,9 +126,6 @@ module Codify
     end
 
     def before_write(object, attr, value)
-#      callbacks = @class_resource.write_callbacks(attr.to_sym)
-#      return true if callbacks.nil?
-#      callbacks.map { |callback| object.instance_exec(value,&callback) }
     end
 
     def attribute_set(object, attr, dirty_included = false)
@@ -142,7 +139,6 @@ module Codify
     end
 
     # methods for dirty support
-
     def before_read_was(object, attr)
       callback = @old_get_attribute[attr]
       return true if callback.nil?
@@ -177,10 +173,9 @@ module Codify
         @changed_attributes[attr] = value # otherwise save actual value
       end
     end
-
   end
-  module ModelAdditions
 
+  module ModelAdditions
     def self.included(base)
       class_resource = ModelResource.new
       base.send :class_variable_set, '@@codify', class_resource
@@ -193,25 +188,7 @@ module Codify
       def initialize *args
         @codify ||= Codify::State.new self.class.class_variable_get :@@codify
         super
-        #@changed_attributes.extend :clear
       end
-
-#      def read_attribute(attr)
-#        @codify.before_read(self, attr, value)
-##        @codify.get_callback_for_attribute(attr).tap do |callback|
-##          if !callback.nil?
-##            newvalue = instance_exec(&callback)
-##            @@codify.write_attribute.bind(self).call(attr, newvalue) # calls write_attribute before it got overridden
-##          end
-##        end
-#        super(attr, value)
-#      end
-#
-#      def write_attribute(attr, value)
-#        # callbacks for writing
-#        super(attr, value)# if @@codify.before_write(self, attr, value)
-#        @codify.attribute_set(attr)
-#      end
     end
 
     module ClassMethods
@@ -370,7 +347,6 @@ module Codify
                     :prefix => "encoded_",
                     :suffix => "",
                     :verb => "encode",
-                    # :include_plaintext => false,
                     :protect_encoded_attribute => true, # protect encoded attribute from being directly written to
                     :reverse_verb => "decode" }.merge(options.symbolize_keys)
 
@@ -397,13 +373,8 @@ module Codify
         # some constant variables (for naming purposes)
         attribute_name = Array(input_attributes).first.to_sym
         encoded_attribute_name = options.has_key?(:attribute) ? options.delete(:attribute) : "#{prefix}#{attribute_name}#{suffix}".to_sym
-        #unencoded_ivar = "@_un#{encoded_attribute_name}".to_sym
-        #old_unencoded_ivar = "@_old_un#{encoded_attribute_name}".to_sym
-        #is_decoded = "@_#{encoded_attribute_name}_is_decoded".to_sym
-        #is_encoded = "@_#{encoded_attribute_name}_is_encoded".to_sym
 
         # flags
-        #depends_on_record = encoders.any? { |encoder| encoder.depends_on_record? } # then no class method to encode this attribute
         reversible = encoders.all? { |encoder| encoder.decodes? } # then no reading of encoded attributes
 
         class_resource = class_variable_get :@@codify
@@ -431,65 +402,6 @@ module Codify
           value = send [attribute_name,suffix].join
           Encoders.encode(encoders, value, self)
         end
-
-#        define_method encoded_attribute_name do
-#          if instance_variable_get is_encoded
-#            if encoded_attribute_name_get.nil?
-#              read_attribute(encoded_attribute_name)
-#            else
-#              encoded_attribute_name_get.bind(self).call
-#            end
-#          else
-#            value = send attribute_name
-#            return nil if value.nil? # if decoded exists
-#            encoded_value = Encoders.encode(encoders, value, self)
-#            if encoded_attribute_name_set.nil?
-#              write_attribute(encoded_attribute_name,encoded_value)
-#            else
-#              encoded_attribute_name_set.bind(self).call encoded_value # allow dirty methods to see it
-#            end
-#            instance_variable_set is_encoded, true
-#          end
-#        end
-#
-#        define_method "#{attribute_name}=".to_sym do |value|
-#          #encoded_value = Encoders.encode(encoders, value, self)
-#          if exclude_plaintext && is_encoded && !send("#{encoded_attribute_name}_changed?") # cache decoded var for ActiveModel::Dirty
-#            instance_variable_set(old_unencoded_ivar, instance_variable_get(unencoded_ivar))
-#          end
-#          #write_attribute(encoded_attribute_name, encoded_value)
-#          write_attribute(attribute_name, value) if include_plaintext
-#          instance_variable_set unencoded_ivar, value # save a copy of the unencoded value
-#          instance_variable_set is_decoded, true
-#          instance_variable_set is_encoded, false
-#        end
-#
-#        %w{changed? was change ?}.each do |modifier| # intercept these to make sure encoding is done
-#          method_name = "#{encoded_attribute_name}_#{modifier}"
-#          define_method method_name do
-#            send encoded_attribute_name # execute any lazily-deferred encoding
-#            super()
-#          end
-#        end
-#
-#        if exclude_plaintext
-#          define_method "#{attribute_name}_changed?".to_sym do
-#            send("#{encoded_attribute_name}_changed?")
-#          end
-#          
-#          define_method "#{attribute_name}_was".to_sym do # use cached old unencoded variable if available
-#            instance_variable_get(old_unencoded_ivar) || begin
-#              encoded_value = send("#{encoded_attribute_name}_was")
-#              next (has_unencoded ? send("#{attribute_name}_was") : nil) if encoded_value.blank?
-#              value = Encoders.decode(encoders, encoded_value, self)
-#              instance_variable_set(old_unencoded_ivar, value) # cache what has been decoded
-#            end
-#          end if reversible # do not define method if cannot decode
-#
-#          define_method "#{attribute_name}_change".to_sym do
-#            send("#{encoded_attribute_name}_changed?") ? [send("#{attribute_name}_was"), send(attribute_name)] : nil
-#          end if reversible
-#
 #          define_method "#{attribute_name}?".to_sym do
 #            if reversible
 #              value = send attribute_name
@@ -498,45 +410,11 @@ module Codify
 #            end
 #            value && !value.blank?
 #          end
-#        end
-#
         
-        after_initialize do |record|
-          #@codify ||= Codify::State.new self.class.class_variable_get :@@codify # appears to be a bug in rails causing this to run before initialize
-
-          #unless send("#{attribute_name}_changed?")
-          #  @codify.attribute_set(self, encoded_attribute_name) # trigger recalc on link tree
-          #end
-#          instance_variable_set is_decoded, false
-#          instance_variable_set is_encoded, !send(encoded_attribute_name).nil?
-#          instance_variable_set is_decoded, true if include_plaintext
-#          if reversible && depends_on_record && exclude_plaintext
-#            instance_variable_set old_unencoded_ivar, send(attribute_name)
-#          end
-        end
-#
         before_save do |record|
           send attribute_name # if is db column
           send encoded_attribute_name # if is db column
-          # if writing a new encoded value, clear unencoded value if necessary
-          # write_attribute(attribute_name, "") if has_unencoded && record.send("#{encoded_attribute_name}_changed?") && exclude_plaintext
-          
-#
-#          # re-encode if states could have changed, and encoding might depend on those states, will only be re-encoded
-#          # if either:
-#          # * reversible - hence the original value was eager decoded (even if the decoded value is blank)
-#          # * or not blank - hence the value has been written to (and there is something to re-encode)
-#          # WARNING: if users change the state in another before_save callback after this executes, inconsistent state
-#          # might still result
-#          instance_variable_set(is_encoded,false) if (depends_on_record && record.changed?)
-#          send encoded_attribute_name # make sure encoded
-#          true
         end
-
-#
-#        define_method "#{encoded_attribute_name}=".to_sym do |*args| # don't let users set encoded value manually (because it is dangerous)
-#          raise NoMethodError, "undefined method '#{encoded_attribute_name}=' for #{self}"
-#        end
 
         # define class methods
         (class << self; self; end).instance_eval do
